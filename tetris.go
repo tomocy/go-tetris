@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math/rand"
 	"time"
 )
@@ -19,23 +20,35 @@ func NewTetris() *Tetris {
 }
 
 func (t *Tetris) GenerateTetromino() {
+	tetr := t.tetr
 	t.tetr = t.lotTetromino()
-	p := t.getStartPoint()
-	t.tetr.p = p
+	t.tetr.p = t.getStartPoint()
+	if t.doesConflictHappen(t.tetr) {
+		t.tetr = tetr
+		fmt.Println("Game Over!!!!!!")
+		return
+	}
+
 	t.setTetromino()
 }
 
 func (t *Tetris) ProcessTetromino(diff Diff) {
-	p := t.getNextPoint(diff)
-	if p.y < 0 || len(t.wrld) <= p.y+t.tetr.h-1 {
+	tetr := t.tetr
+	t.tetr.p = t.getNextPoint(diff)
+	if t.tetr.p.y < 0 || len(t.wrld) <= t.tetr.p.y+t.tetr.h-1 {
+		t.GenerateTetromino()
 		return
 	}
-	if p.x < 0 || len(t.wrld[p.y]) <= p.x+t.tetr.w-1 {
-		p.x = t.tetr.p.x
+	if t.tetr.p.x < 0 || len(t.wrld[t.tetr.p.y]) <= t.tetr.p.x+t.tetr.w-1 {
+		t.tetr.p.x = tetr.p.x
 	}
 
-	t.tetr.p = p
-	t.resetWorld()
+	t.clear(t.tetr)
+	if t.doesConflictHappen(t.tetr) {
+		t.tetr = tetr
+		t.GenerateTetromino()
+	}
+
 	t.setTetromino()
 }
 
@@ -52,10 +65,10 @@ func (t *Tetris) setTetromino() {
 
 }
 
-func (t *Tetris) resetWorld() {
-	for i := 0; i < len(t.wrld); i++ {
-		for j := 0; j < len(t.wrld[i]); j++ {
-			t.wrld[i][j] = Space
+func (t *Tetris) clear(tetr Tetromino) {
+	for i := 0; i < tetr.h; i++ {
+		for j := 0; j < tetr.w; j++ {
+			t.wrld[tetr.p.y+i][tetr.p.x+j] = Space
 		}
 	}
 }
@@ -84,4 +97,16 @@ func (t *Tetris) getNextPoint(diff Diff) Point {
 		x: t.tetr.p.x + diff.x,
 		y: t.tetr.p.y + diff.y,
 	}
+}
+
+func (t *Tetris) doesConflictHappen(tetr Tetromino) bool {
+	for i := 0; i < tetr.h; i++ {
+		for j := 0; j < tetr.w; j++ {
+			if tetr.frame[i][j] == Block && t.wrld[tetr.p.y+i][tetr.p.x+j] == Block {
+				return true
+			}
+		}
+	}
+
+	return false
 }

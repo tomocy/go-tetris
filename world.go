@@ -13,3 +13,12 @@ func MakeWorld(w, h int) World {
 
 	return wrld
 }
+
+func (w World) clear(f Frame) {
+
+	for i := 0; i < f.h; i++ {
+		for j := 0; j < f.w; j++ {
+			w[f.p.y+i][f.p.x+j] = Space
+		}
+	}
+}

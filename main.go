@@ -1,37 +1,39 @@
 package main
 
-import "fmt"
+import (
+	termbox "github.com/nsf/termbox-go"
+)
 
 func main() {
-	// tc := NewTetrisController()
-	// quitCh := make(chan bool)
-
-	// tc.Start()
-	// <-quitCh
-	w := MakeWorld(5, 7)
-	w[0][1] = Block
-	for _, y := range w {
-		for _, x := range y {
-			fmt.Print(x)
-		}
-		fmt.Println()
+	err := termbox.Init()
+	if err != nil {
+		panic(err)
 	}
+	defer termbox.Close()
 
-	f := Frame{p: Point{x: 0, y: 0}, w: len(w[0]), h: len(w)}
-	w.clear(f)
-	for _, y := range w {
-		for _, x := range y {
-			fmt.Print(x)
-		}
-		fmt.Println()
-	}
+	t := NewTetris()
+	t.Start()
+	<-t.stopCh
 }
 
-func Render(t *Tetris) {
-	for _, y := range t.wrld {
-		for _, x := range y {
-			print(x)
+func Render(w World) {
+	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
+	for i := 0; i < len(w); i++ {
+		for j := 1; j <= len(w[i]); j++ {
+			if j == 1 {
+				termbox.SetCell(0, i, []rune(WallStr)[0], termbox.ColorDefault, termbox.ColorDefault)
+			}
+			if j == len(w[i]) {
+				termbox.SetCell(len(w[i])+1, i, []rune(WallStr)[0], termbox.ColorDefault, termbox.ColorDefault)
+			}
+			termbox.SetCell(j, i, []rune(w[i][j-1].String())[0], termbox.ColorDefault, termbox.ColorDefault)
 		}
-		println()
 	}
+
+	for j := 0; j < len(w[0])+2; j++ {
+		termbox.SetCell(j, len(w), []rune(WallStr)[0], termbox.ColorDefault, termbox.ColorDefault)
+	}
+
+	termbox.SetCursor(0, len(w)+1)
+	termbox.Flush()
 }

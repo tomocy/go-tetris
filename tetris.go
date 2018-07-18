@@ -4,109 +4,138 @@ import (
 	"fmt"
 	"math/rand"
 	"time"
+
+	termbox "github.com/nsf/termbox-go"
 )
 
+// Command is ...
+type Command string
+
+// Left is ...
+// Right is ...
+// Down is ...
+const (
+	Left  Command = "j"
+	Right Command = "l"
+	Down  Command = "k"
+)
+
+// Tetris is ...
 type Tetris struct {
-	wrld  World
-	tetrs []Tetromino
-	tetr  Tetromino
+	diffs       map[Command]Diff
+	tetrs       []Tetromino
+	w           World
+	currentTetr Tetromino
+	stopCh      chan bool
+	cmdCh       chan Command
+	rotateCh    chan bool
 }
 
 func NewTetris() *Tetris {
-	return &Tetris{
-		wrld:  MakeWorld(5, 7),
-		tetrs: []Tetromino{MakeI(), MakeO(), MakeZ(), MakeT(), MakeL()},
+	diffs := map[Command]Diff{
+		Left:  Diff{x: -1, y: 0},
+		Right: Diff{x: 1, y: 0},
+		Down:  Diff{x: 0, y: 1},
 	}
+	tetrs := []Tetromino{
+		MakeI(Head), MakeO(Head),
+		MakeZ(Head), MakeT(Head),
+		MakeL(Head),
+	}
+	w := MakeWorld(10, 10)
+	stopCh := make(chan bool)
+	cmdCh := make(chan Command)
+	rotateCh := make(chan bool)
+
+	return &Tetris{diffs: diffs, tetrs: tetrs, w: w, stopCh: stopCh, cmdCh: cmdCh, rotateCh: rotateCh}
 }
 
-func (t *Tetris) GenerateTetromino() {
-	tetr := t.tetr
-	t.tetr = t.lotTetromino()
-	t.tetr.p = t.getStartPoint()
-	if t.doesConflictHappen(t.tetr) {
-		t.tetr = tetr
-		fmt.Println("Game Over!!!!!!")
-		return
-	}
+func (t *Tetris) Start() {
+	t.currentTetr = t.GenerateTetromino(time.Now().UnixNano())
+	t.w.add(t.currentTetr)
+	Render(t.w)
 
-	t.setTetromino()
+	go t.Update()
+	go t.WaitCommand()
 }
 
-func (t *Tetris) ProcessTetromino(diff Diff) {
-	tetr := t.tetr
-	t.tetr.p = t.getNextPoint(diff)
-	if t.tetr.p.y < 0 || len(t.wrld) <= t.tetr.p.y+t.tetr.h-1 {
-		t.GenerateTetromino()
-		return
-	}
-	if t.tetr.p.x < 0 || len(t.wrld[t.tetr.p.y]) <= t.tetr.p.x+t.tetr.w-1 {
-		t.tetr.p.x = tetr.p.x
-	}
+func (t Tetris) GenerateTetromino(seed int64) Tetromino {
+	tetr := t.PickTetromino(seed)
+	tetr.frame.p = t.GetStartPoint(tetr, seed)
 
-	t.clear(t.tetr)
-	if t.doesConflictHappen(t.tetr) {
-		t.tetr = tetr
-		t.GenerateTetromino()
-	}
-
-	t.setTetromino()
+	return tetr
 }
 
-func (t *Tetris) setTetromino() {
-	for i := 0; i < len(t.tetr.frame); i++ {
-		for j := 0; j < len(t.tetr.frame[i]); j++ {
-			if t.tetr.frame[i][j] == Space {
-				continue
-			}
-
-			t.wrld[t.tetr.p.y+i][t.tetr.p.x+j] = Block
-		}
-	}
-
-}
-
-func (t *Tetris) clear(tetr Tetromino) {
-	for i := 0; i < tetr.h; i++ {
-		for j := 0; j < tetr.w; j++ {
-			t.wrld[tetr.p.y+i][tetr.p.x+j] = Space
-		}
-	}
-}
-
-func (t *Tetris) lotTetromino() Tetromino {
-	rand.Seed(time.Now().UnixNano())
+func (t Tetris) PickTetromino(seed int64) Tetromino {
+	rand.Seed(seed)
 	n := rand.Intn(len(t.tetrs))
 
 	return t.tetrs[n]
 }
 
-func (t *Tetris) getStartPoint() Point {
-	wrldLen := len(t.wrld[0])
-	if wrldLen == t.tetr.w {
-		return Point{x: 0, y: 0}
-	}
-
-	rand.Seed(time.Now().UnixNano())
-	x := rand.Intn(wrldLen - t.tetr.w + 1)
+func (t Tetris) GetStartPoint(tetr Tetromino, seed int64) Point {
+	rand.Seed(seed)
+	x := rand.Intn(len(t.w[0]) - tetr.frame.w)
 
 	return Point{x: x, y: 0}
 }
 
-func (t *Tetris) getNextPoint(diff Diff) Point {
-	return Point{
-		x: t.tetr.p.x + diff.x,
-		y: t.tetr.p.y + diff.y,
+func (t *Tetris) Update() {
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
+	for {
+		select {
+		case cmd := <-t.cmdCh:
+			t.Process(cmd)
+		case <-t.rotateCh:
+			t.w.clear(t.currentTetr)
+			t.currentTetr.Rotate()
+		case <-ticker.C:
+			t.Process(Down)
+		}
+
+		Render(t.w)
 	}
 }
 
-func (t *Tetris) doesConflictHappen(tetr Tetromino) bool {
-	for i := 0; i < tetr.h; i++ {
-		for j := 0; j < tetr.w; j++ {
-			if tetr.frame[i][j] == Block && t.wrld[tetr.p.y+i][tetr.p.x+j] == Block {
-				return true
+func (t *Tetris) Process(cmd Command) {
+	prevTetr := t.currentTetr
+	diff := t.diffs[cmd]
+	t.w.clear(t.currentTetr)
+	t.currentTetr.moveFor(diff)
+	if t.currentTetr.frame.p.x < 0 || len(t.w[0]) <= t.currentTetr.frame.p.x+t.currentTetr.frame.w-1 {
+		t.currentTetr.frame.p.x = prevTetr.frame.p.x
+	}
+	if err := t.w.add(t.currentTetr); err != nil {
+		t.currentTetr.moveFor(Diff{x: 0, y: -1})
+		t.w.add(t.currentTetr)
+
+		t.w.deleteLines()
+
+		t.currentTetr = t.GenerateTetromino(time.Now().UnixNano())
+		if err := t.w.add(t.currentTetr); err != nil {
+			fmt.Println("Game Over!!!!")
+			t.stopCh <- true
+		}
+	}
+}
+
+func (t *Tetris) WaitCommand() {
+	for {
+		switch ev := termbox.PollEvent(); ev.Type {
+		case termbox.EventKey:
+			switch ev.Key {
+			case termbox.KeyArrowLeft:
+				t.cmdCh <- Left
+			case termbox.KeyArrowRight:
+				t.cmdCh <- Right
+			case termbox.KeyArrowDown:
+				t.cmdCh <- Down
+			case termbox.KeySpace:
+				t.rotateCh <- true
+			case termbox.KeyCtrlC:
+				t.stopCh <- true
 			}
 		}
 	}
-
-	return false
 }

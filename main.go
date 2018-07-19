@@ -1,39 +1,49 @@
 package main
 
 import (
-	termbox "github.com/nsf/termbox-go"
+	"fmt"
+
+	"github.com/tomocy/go-tetris/tetris"
 )
 
-func main() {
-	err := termbox.Init()
-	if err != nil {
-		panic(err)
-	}
-	defer termbox.Close()
-
-	t := NewTetris()
-	t.Start()
-	<-t.stopCh
+type TetrisController struct {
+	tetris *tetris.Tetris
 }
 
-func Render(w World) {
-	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
-	for i := 0; i < len(w); i++ {
-		for j := 1; j <= len(w[i]); j++ {
-			if j == 1 {
-				termbox.SetCell(0, i, []rune(WallStr)[0], termbox.ColorDefault, termbox.ColorDefault)
-			}
-			if j == len(w[i]) {
-				termbox.SetCell(len(w[i])+1, i, []rune(WallStr)[0], termbox.ColorDefault, termbox.ColorDefault)
-			}
-			termbox.SetCell(j, i, []rune(w[i][j-1].String())[0], termbox.ColorDefault, termbox.ColorDefault)
-		}
-	}
+func NewTetrisController() *TetrisController {
+	tc := new(TetrisController)
+	tc.setUp()
 
-	for j := 0; j < len(w[0])+2; j++ {
-		termbox.SetCell(j, len(w), []rune(WallStr)[0], termbox.ColorDefault, termbox.ColorDefault)
-	}
+	return tc
+}
 
-	termbox.SetCursor(0, len(w)+1)
-	termbox.Flush()
+func (tc *TetrisController) setUp() {
+	tc.tetris = tetris.NewTetris()
+}
+
+func main() {
+	tetrisController := NewTetrisController()
+	tetrisController.startTetris()
+	tetrisController.waitForTetrisToEnd()
+	tetrisController.Render()
+}
+
+func (tc *TetrisController) startTetris() {
+	go tc.tetris.Start()
+}
+
+func (tc *TetrisController) waitForTetrisToEnd() {
+	tc.tetris.Waiting()
+}
+
+func (tc *TetrisController) Render() {
+	res := tc.String()
+
+	fmt.Print(res)
+}
+
+func (tc *TetrisController) String() string {
+	tetrisStr := tc.tetris.String()
+
+	return tetrisStr
 }

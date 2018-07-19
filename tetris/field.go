@@ -1,28 +1,38 @@
 package tetris
 
-type Field [][]Level
+type Field struct {
+	figure Figure
+	w      int
+	h      int
+}
 
-func MakeField(w, h int) Field {
-	f := make(Field, h)
-	for i := 0; i < len(f); i++ {
-		f[i] = make([]Level, w)
-		for j := 0; j < len(f[i]); j++ {
-			f[i][j] = space
+func NewField(w, h int) *Field {
+	f := new(Field)
+	f.setUp(w, h)
+	return f
+}
+
+func (f *Field) setUp(w, h int) {
+	figure := make(Figure, h)
+	for i := 0; i < h; i++ {
+		figure[i] = make([]Level, w)
+		for j := 0; j < w; j++ {
+			figure[i][j] = space
 		}
 	}
-
-	return f
+	f.figure = figure
+	f.w = w
+	f.h = h
 }
 
 func (f Field) Bytes() []byte {
 	b := make([]byte, 0, 10)
-	for _, y := range f {
+	for _, y := range f.figure {
 		for _, x := range y {
 			b = append(b, x.String()...)
 		}
 		b = append(b, "\n"...)
 	}
-
 	return b
 }
 

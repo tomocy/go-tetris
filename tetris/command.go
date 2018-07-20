@@ -1,10 +1,20 @@
 package tetris
 
-type Command int
+type command int
+
+type direction command
 
 const (
-	Left Command = iota
+	Left direction = iota
 	Right
 	Down
-	Rotate
+)
+
+type rotation command
+
+const (
+	Head rotation = iota
+	Rightward
+	Tail
+	Leftward
 )

@@ -1,3 +1,3 @@
 package tetris
 
-type Figure [][]Level
+type figure [][]Level

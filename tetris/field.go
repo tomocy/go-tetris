@@ -1,57 +1,73 @@
 package tetris
 
-type Field struct {
-	figure Figure
+type Field interface {
+	width() int
+	height() int
+	haveConfliction(tetromino tetromino) bool
+	put(tetromino tetromino)
+	clear(figure figure)
+}
+
+type field struct {
+	figure figure
 	w      int
 	h      int
 }
 
-func NewField(w, h int) *Field {
-	f := new(Field)
-	f.setUp(w, h)
+func newField(w, h int) *field {
+	f := new(field)
+	f.w = w
+	f.h = h
+	f.figure = make(figure, h)
+	for i := 0; i < h; i++ {
+		f.figure[i] = make([]Level, w)
+		for j := 0; j < w; j++ {
+			f.figure[i][j] = Space
+		}
+	}
+
 	return f
 }
 
-func (f *Field) setUp(w, h int) {
-	figure := make(Figure, h)
-	for i := 0; i < h; i++ {
-		figure[i] = make([]Level, w)
-		for j := 0; j < w; j++ {
-			figure[i][j] = space
+func (f field) width() int {
+	return f.w
+}
+
+func (f field) height() int {
+	return f.h
+}
+
+func (f field) haveConfliction(tetromino tetromino) bool {
+	for i := 0; i < tetromino.h; i++ {
+		for j := 0; j < tetromino.w; j++ {
+			if tetromino.figure[i][j] != Block {
+				continue
+			}
+
+			y := tetromino.p.y + i
+			x := tetromino.p.x + j
+			if f.figure[y][x] == Block {
+				return true
+			}
 		}
 	}
-	f.figure = figure
-	f.w = w
-	f.h = h
+
+	return false
 }
 
-func (f Field) Bytes() []byte {
-	b := make([]byte, 0, 10)
-	for _, y := range f.figure {
-		for _, x := range y {
-			b = append(b, x.String()...)
+func (f *field) put(tetromino tetromino) {
+	for i := 0; i < tetromino.h; i++ {
+		for j := 0; j < tetromino.w; j++ {
+			if tetromino.figure[i][j] != Block {
+				continue
+			}
+
+			y := tetromino.p.y + i
+			x := tetromino.p.x + j
+			f.figure[y][x] = Block
 		}
-		b = append(b, "\n"...)
 	}
-	return b
 }
 
-type Level interface {
-	String() string
+func (f *field) clear(figure figure) {
 }
-
-type Space int
-type Block int
-
-func (s Space) String() string {
-	return " "
-}
-
-func (b Block) String() string {
-	return "●"
-}
-
-var (
-	space Space
-	block Block
-)

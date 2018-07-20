@@ -1,6 +1,6 @@
 package tetris
 
-type Point struct {
+type point struct {
 	x int
 	y int
 }

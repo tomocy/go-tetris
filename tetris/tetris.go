@@ -33,8 +33,6 @@ func newTetris(w, h int) *tetris {
 
 func (t *tetris) Start() {
 	t.dropRandomTetromino()
-	// move tetromino down per sec
-	// if command is sent, follow the command
 	t.update()
 }
 

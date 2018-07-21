@@ -1,6 +1,7 @@
 package tetris
 
 import (
+	"errors"
 	"math/rand"
 	"time"
 )
@@ -50,8 +51,7 @@ func (t *tetris) dropRandomTetromino() {
 		panic("conflict happen")
 	}
 
-	t.field.put(tetromino.frame())
-	t.currentTetromino = tetromino
+	t.putTetromino(tetromino)
 }
 
 func (t tetris) pickRandomTetromino() Tetromino {
@@ -67,24 +67,36 @@ func (t *tetris) update() {
 	for {
 		select {
 		case <-ticker.C:
-			// get next tetromino
 			next := t.currentTetromino.asMoved(Down)
-			// validate the point
-			if !next.doesExistInColumn(t.field.height()) {
-				panic("over x index")
+			if err := t.putTetrominoOrError(next); err != nil {
+				break
 			}
-			if !next.doesExistInRow(t.field.width()) {
-				panic("over y index")
-			}
-			// check if collisions happen
-			if t.field.haveConfliction(next.frame()) {
-				panic("conflict happen")
-			}
-			// if not happen
-			// move in direction
-			t.currentTetromino.move(Down)
-			// put it in field
-			t.field.put(t.currentTetromino.frame())
 		}
 	}
+}
+
+func (t *tetris) putTetrominoOrError(tetromino Tetromino) error {
+	if !tetromino.doesExistInColumn(t.field.height()) {
+		return errors.New("invalid y index of tetromnio")
+	}
+	if !tetromino.doesExistInRow(t.field.width()) {
+		frame := tetromino.frame()
+		if frame.p.x < 0 {
+			tetromino.move(Right)
+		} else {
+			tetromino.move(Left)
+		}
+	}
+
+	if t.field.haveConfliction(tetromino.frame()) {
+		return errors.New("conflict happen")
+	}
+
+	t.putTetromino(tetromino)
+	return nil
+}
+
+func (t *tetris) putTetromino(tetromino Tetromino) {
+	t.field.put(tetromino.frame())
+	t.currentTetromino = tetromino
 }

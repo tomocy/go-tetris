@@ -58,8 +58,48 @@ func getDoesExistInRowTestCases() []struct {
 	}
 }
 
-func TestGetMoving(t *testing.T) {
+func TestGetAsMoved(t *testing.T) {
+	given := getTetromino()
+	thens := getGetAsMovedTestCases()
+	for _, then := range thens {
+		have := given.getAsMoved(then.in)
+		if !reflect.DeepEqual(have.p, then.want) {
+			t.Errorf("have %v, but want %v", have.p, then.want)
+			t.Errorf("when in is %v", then.in)
+		}
+	}
+}
 
+func getGetAsMovedTestCases() []struct {
+	in   command
+	want point
+} {
+	return []struct {
+		in   command
+		want point
+	}{
+		{
+			in: command(Left),
+			want: point{
+				x: 0,
+				y: 0,
+			},
+		},
+		{
+			in: command(Right),
+			want: point{
+				x: 2,
+				y: 0,
+			},
+		},
+		{
+			in: command(Down),
+			want: point{
+				x: 1,
+				y: 1,
+			},
+		},
+	}
 }
 
 func TestMove(t *testing.T) {
@@ -75,22 +115,6 @@ func TestMove(t *testing.T) {
 
 		given = getTetromino()
 	}
-}
-
-func getTetromino() tetromino {
-	tetromino := tetromino{
-		figure: figure{
-			[]Level{Block, Block, Block, Block},
-		},
-		p: point{
-			x: 1,
-			y: 0,
-		},
-		w: 4,
-		h: 1,
-	}
-
-	return tetromino
 }
 
 func getMoveTestCases() []struct {
@@ -124,6 +148,23 @@ func getMoveTestCases() []struct {
 		},
 	}
 }
+
+func getTetromino() tetromino {
+	tetromino := tetromino{
+		figure: figure{
+			[]Level{Block, Block, Block, Block},
+		},
+		p: point{
+			x: 1,
+			y: 0,
+		},
+		w: 4,
+		h: 1,
+	}
+
+	return tetromino
+}
+
 func TestNewI(t *testing.T) {
 	want := &i{
 		tetromino: tetromino{

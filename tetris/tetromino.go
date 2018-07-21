@@ -5,7 +5,7 @@ type Tetromino interface {
 	doesExistInRow(w int) bool
 	get() tetromino
 	obey(cmd command)
-	getMoving(cmd command) Tetromino
+	getAsMoved(cmd command) tetromino
 	move(direction direction)
 	moveFor(diff diff)
 	rotate(rotation rotation)
@@ -51,8 +51,10 @@ func (t tetromino) get() tetromino {
 func (t *tetromino) obey(cmd command) {
 }
 
-func (t tetromino) getMoving(cmd command) Tetromino {
-	return newI()
+func (t tetromino) getAsMoved(cmd command) tetromino {
+	t.move(direction(cmd))
+
+	return t
 }
 
 func (t *tetromino) move(direction direction) {

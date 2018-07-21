@@ -68,7 +68,7 @@ func (t *tetris) update() {
 		select {
 		case <-ticker.C:
 			// get next tetromino
-			next := t.currentTetromino.getMoving()
+			next := t.currentTetromino.getAsMoved(command(Down))
 			// validate the point
 			if !next.doesExistInColumn(t.field.height()) {
 

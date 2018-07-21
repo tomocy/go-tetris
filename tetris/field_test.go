@@ -6,46 +6,41 @@ import (
 )
 
 func TestNewField(t *testing.T) {
-	figure := figure{
-		[]Level{Space, Space, Space, Space, Space},
-		[]Level{Space, Space, Space, Space, Space},
-		[]Level{Space, Space, Space, Space, Space},
-		[]Level{Space, Space, Space, Space, Space},
-		[]Level{Space, Space, Space, Space, Space},
-		[]Level{Space, Space, Space, Space, Space},
-		[]Level{Space, Space, Space, Space, Space},
-		[]Level{Space, Space, Space, Space, Space},
-		[]Level{Space, Space, Space, Space, Space},
-		[]Level{Space, Space, Space, Space, Space},
+	want := getNewFieldExpectation()
+	have := newField(5, 2)
+	if !reflect.DeepEqual(have, want) {
+		t.Errorf("have %#v, but want %#v", have, want)
 	}
-	w := 5
-	h := 10
-	field := newField(w, h)
-	if field.w != w {
-		t.Error("field width is incorrect\n")
-		t.Errorf("have %v, but want %v", field.w, w)
-		t.Error("set it properly in newField method\n")
-	}
-	if field.h != h {
-		t.Error("field height is incorrect\n")
-		t.Errorf("have %v, but want %v", field.h, h)
-		t.Error("set it properly in newField method\n")
-	}
-	if !reflect.DeepEqual(field.figure, figure) {
-		t.Error("field figure is incorrect\n")
-		t.Error("field figure by newField should be filled with Space\n")
-		t.Error("set it properly in newField method\n")
+}
+
+func getNewFieldExpectation() *field {
+	return &field{
+		figure: figure{
+			[]Level{Space, Space, Space, Space, Space},
+			[]Level{Space, Space, Space, Space, Space},
+		},
+		w: 5,
+		h: 2,
 	}
 }
 
 func TestHaveConflict(t *testing.T) {
-	field := field{
-		figure: figure{
-			[]Level{Space, Space, Space, Space, Space},
-			[]Level{Block, Block, Block, Space, Space},
-		},
+	given := getField()
+	thens := getHaveConflictTestCases()
+	for _, then := range thens {
+		have := given.haveConflict(then.in)
+		if have != then.want {
+			t.Errorf("have %v, but want %v", have, then.want)
+			t.Errorf("when in is %v", then.in)
+		}
 	}
-	tables := []struct {
+}
+
+func getHaveConflictTestCases() []struct {
+	in   frame
+	want bool
+} {
+	return []struct {
 		in   frame
 		want bool
 	}{
@@ -109,24 +104,27 @@ func TestHaveConflict(t *testing.T) {
 			want: true,
 		},
 	}
-
-	for _, table := range tables {
-		have := field.haveConflict(table.in)
-		if have != table.want {
-			t.Errorf("have %v, but want %v", have, table.want)
-			t.Errorf("when in is %v", table.in)
-		}
-	}
 }
 
 func TestPut(t *testing.T) {
-	f := field{
-		figure: figure{
-			[]Level{Space, Space, Space, Space, Space},
-			[]Level{Block, Block, Block, Space, Space},
-		},
+	given := getField()
+	thens := getPutTestCases()
+	for _, then := range thens {
+		given.put(then.in)
+		if !reflect.DeepEqual(given, then.want) {
+			t.Errorf("have %v, but want %v", given, then.want)
+			t.Errorf("when in is %v", then.in)
+		}
+
+		given = getField()
 	}
-	tables := []struct {
+}
+
+func getPutTestCases() []struct {
+	in   frame
+	want field
+} {
+	return []struct {
 		in   frame
 		want field
 	}{
@@ -170,20 +168,13 @@ func TestPut(t *testing.T) {
 			},
 		},
 	}
+}
 
-	for _, table := range tables {
-		f.put(table.in)
-		if !reflect.DeepEqual(f, table.want) {
-			t.Errorf("have %v, but want %v", f, table.want)
-			t.Errorf("when in is %v", table.in)
-		}
-
-		// reset
-		f = field{
-			figure: figure{
-				[]Level{Space, Space, Space, Space, Space},
-				[]Level{Block, Block, Block, Space, Space},
-			},
-		}
+func getField() field {
+	return field{
+		figure: figure{
+			[]Level{Space, Space, Space, Space, Space},
+			[]Level{Block, Block, Block, Space, Space},
+		},
 	}
 }

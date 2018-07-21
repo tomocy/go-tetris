@@ -47,7 +47,7 @@ func (t *tetris) dropRandomTetromino() {
 	if !tetromino.doesExistInRow(t.field.width()) {
 		panic("over x index")
 	}
-	if t.field.haveConfliction(tetromino.frame()) {
+	if t.field.haveConflict(tetromino.frame()) {
 		panic("conflict happen")
 	}
 

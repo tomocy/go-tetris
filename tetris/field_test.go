@@ -38,7 +38,7 @@ func TestNewField(t *testing.T) {
 	}
 }
 
-func TestHaveConfliction(t *testing.T) {
+func TestHaveConflict(t *testing.T) {
 	field := field{
 		figure: figure{
 			[]Level{Space, Space, Space, Space, Space},
@@ -111,7 +111,7 @@ func TestHaveConfliction(t *testing.T) {
 	}
 
 	for _, table := range tables {
-		have := field.haveConfliction(table.in)
+		have := field.haveConflict(table.in)
 		if have != table.want {
 			t.Errorf("have %v, but want %v", have, table.want)
 			t.Errorf("when in is %v", table.in)

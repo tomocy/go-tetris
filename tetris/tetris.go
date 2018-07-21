@@ -88,7 +88,7 @@ func (t *tetris) putTetrominoOrError(tetromino Tetromino) error {
 		}
 	}
 
-	if t.field.haveConfliction(tetromino.frame()) {
+	if t.field.haveConflict(tetromino.frame()) {
 		return errors.New("conflict happen")
 	}
 

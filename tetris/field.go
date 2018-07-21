@@ -3,7 +3,7 @@ package tetris
 type Field interface {
 	width() int
 	height() int
-	haveConfliction(frame frame) bool
+	haveConflict(frame frame) bool
 	put(frame frame)
 	clear(figure figure)
 }
@@ -37,7 +37,7 @@ func (f field) height() int {
 	return f.h
 }
 
-func (f field) haveConfliction(frame frame) bool {
+func (f field) haveConflict(frame frame) bool {
 	for i := 0; i < frame.h; i++ {
 		for j := 0; j < frame.w; j++ {
 			if frame.figure[i][j] != Block {

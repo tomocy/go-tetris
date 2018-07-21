@@ -3,15 +3,19 @@ package tetris
 type Tetromino interface {
 	doesExistInColumn(h int) bool
 	doesExistInRow(w int) bool
-	get() tetromino
+	frame() frame
 	obey(cmd command)
-	getAsMoved(cmd command) tetromino
+	asMoved(direction direction) Tetromino
 	move(direction direction)
 	moveFor(diff diff)
 	rotate(rotation rotation)
 }
 
 type tetromino struct {
+	f frame
+}
+
+type frame struct {
 	figure figure
 	p      point
 	w      int
@@ -29,7 +33,7 @@ var (
 )
 
 func (t tetromino) doesExistInColumn(h int) bool {
-	if t.p.y < 0 || h <= t.p.y+t.h-1 {
+	if t.f.p.y < 0 || h <= t.f.p.y+t.f.h-1 {
 		return false
 	}
 
@@ -37,24 +41,18 @@ func (t tetromino) doesExistInColumn(h int) bool {
 }
 
 func (t tetromino) doesExistInRow(w int) bool {
-	if t.p.x < 0 || w <= t.p.x+t.w-1 {
+	if t.f.p.x < 0 || w <= t.f.p.x+t.f.w-1 {
 		return false
 	}
 
 	return true
 }
 
-func (t tetromino) get() tetromino {
-	return t
+func (t tetromino) frame() frame {
+	return t.f
 }
 
 func (t *tetromino) obey(cmd command) {
-}
-
-func (t tetromino) getAsMoved(cmd command) tetromino {
-	t.move(direction(cmd))
-
-	return t
 }
 
 func (t *tetromino) move(direction direction) {
@@ -67,8 +65,8 @@ func (t *tetromino) move(direction direction) {
 }
 
 func (t *tetromino) moveFor(diff diff) {
-	t.p.x += diff.x
-	t.p.y += diff.y
+	t.f.p.x += diff.x
+	t.f.p.y += diff.y
 }
 
 type i struct {
@@ -81,12 +79,19 @@ func newI() *i {
 		[]Level{Block, Block, Block, Block},
 	}
 	i.tetromino = tetromino{
-		figure: figure,
-		w:      4,
-		h:      1,
+		f: frame{
+			figure: figure,
+			w:      4,
+			h:      1,
+		},
 	}
 
 	return i
+}
+
+func (i i) asMoved(direction direction) Tetromino {
+	i.move(direction)
+	return &i
 }
 
 func (i *i) rotate(rotation rotation) {
@@ -103,12 +108,19 @@ func newO() *o {
 		[]Level{Block, Block},
 	}
 	o.tetromino = tetromino{
-		figure: figure,
-		w:      2,
-		h:      2,
+		f: frame{
+			figure: figure,
+			w:      2,
+			h:      2,
+		},
 	}
 
 	return o
+}
+
+func (o o) asMoved(direction direction) Tetromino {
+	o.move(direction)
+	return &o
 }
 
 func (o *o) rotate(rotation rotation) {
@@ -125,12 +137,19 @@ func newZ() *z {
 		[]Level{Space, Block, Block},
 	}
 	z.tetromino = tetromino{
-		figure: figure,
-		w:      3,
-		h:      2,
+		f: frame{
+			figure: figure,
+			w:      3,
+			h:      2,
+		},
 	}
 
 	return z
+}
+
+func (z z) asMoved(direction direction) Tetromino {
+	z.move(direction)
+	return &z
 }
 
 func (z *z) rotate(rotation rotation) {
@@ -147,12 +166,19 @@ func newT() *t {
 		[]Level{Space, Block, Space},
 	}
 	t.tetromino = tetromino{
-		figure: figure,
-		w:      3,
-		h:      2,
+		f: frame{
+			figure: figure,
+			w:      3,
+			h:      2,
+		},
 	}
 
 	return t
+}
+
+func (t t) asMoved(direction direction) Tetromino {
+	t.move(direction)
+	return &t
 }
 
 func (t *t) rotate(rotation rotation) {
@@ -169,12 +195,19 @@ func newL() *l {
 		[]Level{Block, Space, Space},
 	}
 	l.tetromino = tetromino{
-		figure: figure,
-		w:      3,
-		h:      2,
+		f: frame{
+			figure: figure,
+			w:      3,
+			h:      2,
+		},
 	}
 
 	return l
+}
+
+func (l l) asMoved(direction direction) Tetromino {
+	l.move(direction)
+	return &l
 }
 
 func (l *l) rotate(rotation rotation) {

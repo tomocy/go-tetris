@@ -46,11 +46,11 @@ func (t *tetris) dropRandomTetromino() {
 	if !tetromino.doesExistInRow(t.field.width()) {
 		panic("over x index")
 	}
-	if t.field.haveConfliction(tetromino.get()) {
+	if t.field.haveConfliction(tetromino.frame()) {
 		panic("conflict happen")
 	}
 
-	t.field.put(tetromino.get())
+	t.field.put(tetromino.frame())
 	t.currentTetromino = tetromino
 }
 
@@ -68,23 +68,23 @@ func (t *tetris) update() {
 		select {
 		case <-ticker.C:
 			// get next tetromino
-			next := t.currentTetromino.getAsMoved(command(Down))
+			next := t.currentTetromino.asMoved(Down)
 			// validate the point
 			if !next.doesExistInColumn(t.field.height()) {
-
+				panic("over x index")
 			}
 			if !next.doesExistInRow(t.field.width()) {
-
+				panic("over y index")
 			}
 			// check if collisions happen
-			if t.field.haveConfliction(next.get()) {
-
+			if t.field.haveConfliction(next.frame()) {
+				panic("conflict happen")
 			}
 			// if not happen
 			// move in direction
 			t.currentTetromino.move(Down)
 			// put it in field
-			t.field.put(t.currentTetromino.get())
+			t.field.put(t.currentTetromino.frame())
 		}
 	}
 }

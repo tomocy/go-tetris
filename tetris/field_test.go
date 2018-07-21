@@ -46,11 +46,11 @@ func TestHaveConfliction(t *testing.T) {
 		},
 	}
 	tables := []struct {
-		in   tetromino
+		in   frame
 		want bool
 	}{
 		{
-			in: tetromino{
+			in: frame{
 				figure: figure{
 					[]Level{Block, Block, Block, Block},
 				},
@@ -64,7 +64,7 @@ func TestHaveConfliction(t *testing.T) {
 			want: false,
 		},
 		{
-			in: tetromino{
+			in: frame{
 				figure: figure{
 					[]Level{Block, Block},
 					[]Level{Block, Block},
@@ -79,7 +79,7 @@ func TestHaveConfliction(t *testing.T) {
 			want: false,
 		},
 		{
-			in: tetromino{
+			in: frame{
 				figure: figure{
 					[]Level{Block, Block, Block},
 					[]Level{Block, Space, Space},
@@ -94,7 +94,7 @@ func TestHaveConfliction(t *testing.T) {
 			want: true,
 		},
 		{
-			in: tetromino{
+			in: frame{
 				figure: figure{
 					[]Level{Space, Block, Block},
 					[]Level{Block, Block, Space},
@@ -127,11 +127,11 @@ func TestPut(t *testing.T) {
 		},
 	}
 	tables := []struct {
-		in   tetromino
+		in   frame
 		want field
 	}{
 		{
-			in: tetromino{
+			in: frame{
 				figure: figure{
 					[]Level{Block, Block, Block, Block},
 				},
@@ -150,7 +150,7 @@ func TestPut(t *testing.T) {
 			},
 		},
 		{
-			in: tetromino{
+			in: frame{
 				figure: figure{
 					[]Level{Block, Block},
 					[]Level{Block, Block},

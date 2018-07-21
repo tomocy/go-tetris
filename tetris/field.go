@@ -3,8 +3,8 @@ package tetris
 type Field interface {
 	width() int
 	height() int
-	haveConfliction(tetromino tetromino) bool
-	put(tetromino tetromino)
+	haveConfliction(frame frame) bool
+	put(frame frame)
 	clear(figure figure)
 }
 
@@ -37,15 +37,15 @@ func (f field) height() int {
 	return f.h
 }
 
-func (f field) haveConfliction(tetromino tetromino) bool {
-	for i := 0; i < tetromino.h; i++ {
-		for j := 0; j < tetromino.w; j++ {
-			if tetromino.figure[i][j] != Block {
+func (f field) haveConfliction(frame frame) bool {
+	for i := 0; i < frame.h; i++ {
+		for j := 0; j < frame.w; j++ {
+			if frame.figure[i][j] != Block {
 				continue
 			}
 
-			y := tetromino.p.y + i
-			x := tetromino.p.x + j
+			y := frame.p.y + i
+			x := frame.p.x + j
 			if f.figure[y][x] == Block {
 				return true
 			}
@@ -55,15 +55,15 @@ func (f field) haveConfliction(tetromino tetromino) bool {
 	return false
 }
 
-func (f *field) put(tetromino tetromino) {
-	for i := 0; i < tetromino.h; i++ {
-		for j := 0; j < tetromino.w; j++ {
-			if tetromino.figure[i][j] != Block {
+func (f *field) put(frame frame) {
+	for i := 0; i < frame.h; i++ {
+		for j := 0; j < frame.w; j++ {
+			if frame.figure[i][j] != Block {
 				continue
 			}
 
-			y := tetromino.p.y + i
-			x := tetromino.p.x + j
+			y := frame.p.y + i
+			x := frame.p.x + j
 			f.figure[y][x] = Block
 		}
 	}

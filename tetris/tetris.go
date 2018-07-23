@@ -18,6 +18,7 @@ type tetris struct {
 	field            Field
 	tetrominos       []Tetromino
 	currentTetromino Tetromino
+	quit             chan bool
 }
 
 func newTetris(w, h int) *tetris {
@@ -27,6 +28,7 @@ func newTetris(w, h int) *tetris {
 		newI(), newO(), newZ(),
 		newT(), newL(),
 	}
+	t.quit = make(chan bool)
 
 	return t
 }
@@ -38,18 +40,9 @@ func (t *tetris) Start() {
 
 func (t *tetris) dropRandomTetromino() {
 	tetromino := t.pickRandomTetromino()
-
-	if !tetromino.doesExistInColumn(t.field.height()) {
-		panic("over y index")
+	if err := t.putTetrominoOrError(tetromino); err != nil {
+		t.quit <- true
 	}
-	if !tetromino.doesExistInRow(t.field.width()) {
-		panic("over x index")
-	}
-	if t.field.haveConflict(tetromino.frame()) {
-		panic("conflict happen")
-	}
-
-	t.putTetromino(tetromino)
 }
 
 func (t tetris) pickRandomTetromino() Tetromino {
@@ -67,7 +60,7 @@ func (t *tetris) update() {
 		case <-ticker.C:
 			next := t.currentTetromino.asMoved(Down)
 			if err := t.putTetrominoOrError(next); err != nil {
-				break
+				t.dropRandomTetromino()
 			}
 		}
 	}

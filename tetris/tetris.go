@@ -18,6 +18,7 @@ type tetris struct {
 	field            Field
 	tetrominos       []Tetromino
 	currentTetromino Tetromino
+	renderer         Renderer
 	quit             chan bool
 }
 

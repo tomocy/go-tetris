@@ -15,8 +15,6 @@ type tetromino struct {
 	f frame
 }
 
-type diff point
-
 var (
 	diffs = map[direction]diff{
 		Left:  diff{x: -1, y: 0},

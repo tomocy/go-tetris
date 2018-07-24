@@ -15,13 +15,6 @@ type tetromino struct {
 	f frame
 }
 
-type frame struct {
-	figure figure
-	p      point
-	w      int
-	h      int
-}
-
 type diff point
 
 var (
